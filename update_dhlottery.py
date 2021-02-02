@@ -9,17 +9,6 @@ filename1 = "./files/draw_result.csv"
 filename2 = "./files/number_stats.csv"
 filename3 = "./files/color_stats.csv"
 
-
-def write_to_csv(filename, data):
-    """ csv 파일에 작성하기
-    1. filename ; 파일명[string]
-    2. data ; csv에 입력할 데이터[list]
-    """
-    with open(filename, "a", encoding="utf8", newline="") as fp:
-        writer = csv.writer(fp)
-        writer.writerow(data)
-
-
 def get_last_draw_no():
     """ 최근 추첨 회차 가져오기
     :return: 최신 회차[int]
@@ -47,24 +36,26 @@ def get_draw_result():
         lines = fp.readlines()
         start_drw_no = int(lines[-1].split(',')[0])
 
-    # 파일 마지막 ~ 최근 추첨 회차까지 스크래핑
-    for draw_number in range(start_drw_no + 1, end_drw_no + 1):
-        url = "https://dhlottery.co.kr/gameResult.do?method=byWin&drwNo={}".format(draw_number)
-        res = requests.get(url, headers=header)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.text, "lxml")
+    # 파일 마지막 ~ 최근 추첨 회차까지 스크래핑 및 csv 작성
+    with open(filename1, "a", encoding="utf8", newline="") as fp:
+        for draw_number in range(start_drw_no + 1, end_drw_no + 1):
+            url = "https://dhlottery.co.kr/gameResult.do?method=byWin&drwNo={}".format(draw_number)
+            res = requests.get(url, headers=header)
+            res.raise_for_status()
+            soup = BeautifulSoup(res.text, "lxml")
 
-        result = [draw_number, ]  # 최종 회차 정보 리스트
-        win_numbers = soup.find("div", {"class": "num win"}).p.find_all("span")
-        bonus_number = soup.find("div", {"class": "num bonus"}).p.find("span").get_text()
+            result = [draw_number, ]  # 최종 회차 정보 리스트
+            win_numbers = soup.find("div", {"class": "num win"}).p.find_all("span")
+            bonus_number = soup.find("div", {"class": "num bonus"}).p.find("span").get_text()
 
-        for win_number in win_numbers:
-            result.append(int(win_number.get_text()))
+            for win_number in win_numbers:
+                result.append(int(win_number.get_text()))
 
-        result.append(int(bonus_number))
+            result.append(int(bonus_number))
 
-        write_to_csv(filename1, result)
-        print(draw_number, "회 완료")
+            writer = csv.writer(fp)
+            writer.writerow(result)
+            print(draw_number, "회 완료")
 
 
 def get_number_stats():
@@ -87,10 +78,14 @@ def get_number_stats():
 
     data_rows = soup.find("table", attrs={"class": "tbl_data tbl_data_col"}).find("tbody").find_all("tr")
 
-    for row in data_rows:
-        columns = row.find_all("td")
-        data = [column.get_text().strip() for column in columns]
-        write_to_csv(filename2, data)
+    # 데이터 csv 입력
+    with open(filename2, "a", encoding="utf8", newline="") as fp:
+        for row in data_rows:
+            columns = row.find_all("td")
+            data = [column.get_text().strip() for column in columns]
+
+            writer = csv.writer(fp)
+            writer.writerow(data)
 
 
 def get_color_stats():
