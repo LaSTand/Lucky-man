@@ -8,6 +8,9 @@ header = {
 filename1 = "./files/draw_result.csv"
 filename2 = "./files/number_stats.csv"
 filename3 = "./files/color_stats.csv"
+filename4 = "./files/section_stats.csv"
+filename5 = "./files/unseen_numbers.csv"
+
 
 def get_last_draw_no():
     """ 최근 추첨 회차 가져오기
@@ -83,7 +86,6 @@ def get_number_stats():
         for row in data_rows:
             columns = row.find_all("td")
             data = [column.get_text().strip() for column in columns]
-
             writer = csv.writer(fp)
             writer.writerow(data)
 
@@ -124,7 +126,64 @@ def get_color_stats():
                 writer.writerow(stat)
 
 
+def get_section_stats():
+    """ 구간별 출현 횟수 구하기
+    최근 5주, 10주, 15주 동안 구간별로 당첨 번호가 출현한 횟수
+    """
+    # csv 파일 헤드라인 입력
+    with open(filename4, "w", encoding="utf-8-sig", newline="") as fp:
+        writer = csv.writer(fp)
+        title = ["color", "percentage", "count", "section"]
+        writer.writerow(title)
+
+    with open(filename4, "a", encoding="utf8", newline="") as fp:
+        for i in [5, 10]:
+            for j in [5, 10, 15]:
+                url = "https://www.dhlottery.co.kr/gameResult.do?method=statGroupNum&sortOrder=DESC&srchType={}&sltPeriod={}".format(i, j)
+                res = requests.get(url, headers=header)
+                res.raise_for_status()
+                soup = BeautifulSoup(res.text, "lxml")
+
+                data_rows = soup.find("table", attrs={"class": "tbl_data tbl_data_col"}).find("tbody").find_all("tr")
+
+                for row in data_rows:
+                    columns = row.find_all("td")
+                    data = [column.get_text().strip() for column in columns]
+                    data.append("last {} weeks(by {} numbers)".format(j, i))
+                    writer = csv.writer(fp)
+                    writer.writerow(data)
+
+
+def get_unseen_nums():
+    """ 기간별 미출현 번호 구하기
+    최근 5주, 10주, 15주 동안 구간별로 출현하지 않은 번호 가져오기
+    """
+    # csv 파일 헤드라인 입력
+    with open(filename5, "w", encoding="utf-8-sig", newline="") as fp:
+        writer = csv.writer(fp)
+        title = ["section", "numbers", "period"]
+        writer.writerow(title)
+
+    with open(filename5, "a", encoding="utf8", newline="") as fp:
+        for i in [5, 10, 15]:
+            url = "https://www.dhlottery.co.kr/gameResult.do?method=noViewNumber&sortOrder=DESC&srchType=&sltPeriod={}".format(i)
+            res = requests.get(url, headers=header)
+            res.raise_for_status()
+            soup = BeautifulSoup(res.text, "lxml")
+
+            data_rows = soup.find("table", attrs={"class": "tbl_data tbl_data_col"}).find("tbody").find_all("tr")
+
+            for row in data_rows:
+                columns = row.find_all("td")
+                data = [column.get_text().strip().replace('\n', " ") for column in columns]
+                data.append("last {} weeks".format(i))
+                writer = csv.writer(fp)
+                writer.writerow(data)
+
+
 if __name__ == '__main__':
     # get_draw_result()
     # get_number_stats()
     # get_color_stats()
+    # get_section_stats()
+    get_unseen_nums()

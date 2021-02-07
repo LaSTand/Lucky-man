@@ -1,0 +1,16 @@
+﻿section,numbers,period
+1 ~ 10번,1 2 4 6 7,last 5 weeks
+11 ~ 20번,11 12 16,last 5 weeks
+21 ~ 30번,22 23 24 25 28 29,last 5 weeks
+31 ~ 40번,32 39,last 5 weeks
+41 ~ 45번,42 43 45,last 5 weeks
+1 ~ 10번,4 6 7,last 10 weeks
+11 ~ 20번,,last 10 weeks
+21 ~ 30번,23 28 29,last 10 weeks
+31 ~ 40번,,last 10 weeks
+41 ~ 45번,,last 10 weeks
+1 ~ 10번,,last 15 weeks
+11 ~ 20번,,last 15 weeks
+21 ~ 30번,23,last 15 weeks
+31 ~ 40번,,last 15 weeks
+41 ~ 45번,,last 15 weeks
